@@ -5,6 +5,7 @@ import { websocketOpts } from "@/type/PluginsType";
 // @ts-ignore
 import { App } from "vue";
 
+
 export default {
   install(
     app: App,

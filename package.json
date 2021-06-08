@@ -7,7 +7,7 @@
   "private": false,
   "publisher": "magicalprogrammer@qq.com",
   "scripts": {
-    "build": "vue-cli-service build --target lib --name vueNativeWebsocket src/main.ts",
+    "build": "vue-cli-service build --target lib --name vueNativeWebsocket src/Main.ts",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "commit": "git-cz"
   },
