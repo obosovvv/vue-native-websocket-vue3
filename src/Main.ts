@@ -9,6 +9,7 @@ export default {
   install(
     app: App,
     connection: string,
+    accessToken: string[],
     opts: websocketOpts = { format: "" }
   ): void {
     // 没有传入连接，抛出异常 | No incoming connection, throw an exception
@@ -32,7 +33,7 @@ export default {
         // 调用者传入的参数中添加set实例 | Add a set instance to the parameters passed by the caller
         connectionOpts.$setInstance = opts.$setInstance;
         // 创建Observer建立websocket连接 | Create Observer to establish websocket connection
-        observer = new Observer(connectionUrl, connectionOpts);
+        observer = new Observer(connectionUrl, accessToken, connectionOpts);
         // 全局添加$socket | Add $socket globally
         app.config.globalProperties.$socket = observer.WebSocket;
       };
@@ -52,7 +53,7 @@ export default {
       };
     } else {
       // 未启用手动连接 | Manual connection is not enabled
-      observer = new Observer(connection, opts);
+      observer = new Observer(connection, accessToken, opts);
       // 全局添加$socket属性，连接至websocket服务器 | Add the $socket attribute globally to connect to the websocket server
       app.config.globalProperties.$socket = observer.WebSocket;
     }

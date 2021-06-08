@@ -5,6 +5,7 @@ export default class {
   private readonly format: string; // 数据传输格式 | Data transmission format
   private readonly connectionUrl: string; // 连接url | Connection url
   private readonly opts: websocketOpts; // 调用者可以传入的自定义参数 | Custom parameters that the caller can pass in
+  private readonly accessToken: string[];
   public reconnection: boolean; // 是否开启重连 | Whether to enable reconnection
   private readonly reconnectionAttempts: number; // 最大重连次数 | Maximum number of reconnections
   private readonly reconnectionDelay: number; // 重连间隔时间 | Reconnection interval
@@ -17,9 +18,14 @@ export default class {
   /**
    * 观察者模式, websocket服务核心功能封装 | Observer mode, websocket service core function package
    * @param connectionUrl 连接的url
+   * @param accessToken
    * @param opts 其它配置项 | Other configuration items
    */
-  constructor(connectionUrl: string, opts: websocketOpts = { format: "" }) {
+  constructor(
+    connectionUrl: string,
+    accessToken: string[],
+    opts: websocketOpts = { format: "" }
+  ) {
     // 获取参数中的format并将其转成小写 | Get the format in the parameter and convert it to lowercase
     this.format = opts.format && opts.format.toLowerCase();
 
@@ -32,13 +38,14 @@ export default class {
     // 将处理好的url和opts赋值给当前类内部变量 | Assign the processed url and opts to the internal variables of the current class
     this.connectionUrl = connectionUrl;
     this.opts = opts;
+    this.accessToken = accessToken;
     this.reconnection = this.opts.reconnection || false;
     this.reconnectionAttempts = this.opts.reconnectionAttempts || Infinity;
     this.reconnectionDelay = this.opts.reconnectionDelay || 1000;
     this.passToStoreHandler = this.opts.passToStoreHandler;
 
     // 建立连接 | establish connection
-    this.connect(connectionUrl, opts);
+    this.connect(connectionUrl, accessToken, opts);
 
     // 如果配置参数中有传store就将store赋值 | If store is passed in the configuration parameters, store will be assigned
     if (opts.store) {
@@ -55,16 +62,17 @@ export default class {
   // 连接websocket | Connect websocket
   connect(
     connectionUrl: string,
+    accessToken: string[],
     opts: websocketOpts = { format: "" }
   ): WebSocket {
     // 获取配置参数传入的协议 | Get the protocol passed in the configuration parameter
-    const protocol = opts.protocol || "";
+    const protocol = opts.protocol || accessToken;
     // 如果没传协议就建立一个正常的websocket连接否则就创建带协议的websocket连接 | If no protocol is passed, establish a normal websocket connection, otherwise, create a websocket connection with protocol
     this.WebSocket =
       opts.WebSocket ||
       (protocol === ""
-        ? new WebSocket(connectionUrl)
-        : new WebSocket(connectionUrl, protocol));
+        ? new WebSocket(connectionUrl, accessToken)
+        : new WebSocket(connectionUrl, accessToken, protocol));
     // 启用json发送 | Enable json sending
     if (this.format === "json") {
       // 如果websocket中没有senObj就添加这个方法对象 | If there is no sen Obj in websocket, add this method object
@@ -90,7 +98,7 @@ export default class {
           this.passToStore("SOCKET_RECONNECT", this.reconnectionCount);
         }
         // 重新连接 | reconnect
-        this.connect(this.connectionUrl, this.opts);
+        this.connect(this.connectionUrl, this.accessToken, this.opts);
         // 触发WebSocket事件 | Trigger Web Socket events
         this.onEvent();
       }, this.reconnectionDelay);
